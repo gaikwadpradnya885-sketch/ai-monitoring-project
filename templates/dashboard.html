@@ -1,46 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Monitoring Dashboard</title>
+    <title>AI Monitoring Premium</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
 
-<body style="background:#0d1117; color:white; font-family:Arial; margin:0;">
+<body style="
+    margin:0;
+    font-family:Poppins, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color:white;
+    display:flex;
+">
 
-<!-- HEADER -->
-<div style="padding:20px; text-align:center;">
-    <h1>🤖 AI Monitoring Dashboard</h1>
+<!-- SIDEBAR -->
+<div style="
+    width:230px;
+    height:100vh;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
+    padding:20px;
+">
+
+    <h2>⚡ AI Monitor</h2>
+    <hr style="border-color:rgba(255,255,255,0.1)">
+
+    <p style="color:#bbb;">Dashboard</p>
+    <p style="color:#bbb;">Analytics</p>
+    <p style="color:#bbb;">Alerts</p>
+
 </div>
 
-<!-- CARDS -->
-<div style="display:flex; justify-content:center; gap:20px; padding:20px;">
+<!-- MAIN -->
+<div style="flex:1; padding:20px;">
 
-    <div style="background:#161b22; padding:20px; border-radius:10px; width:150px;">
-        <h3>CPU</h3>
-        <p id="cpu" style="font-size:20px;"></p>
+    <!-- HEADER -->
+    <h1 style="margin-bottom:20px;">🤖 AI Monitoring Dashboard</h1>
+
+    <!-- CARDS -->
+    <div style="display:flex; gap:20px;">
+
+        <div class="card">
+            <h3>CPU</h3>
+            <p id="cpu"></p>
+        </div>
+
+        <div class="card">
+            <h3>Memory</h3>
+            <p id="memory"></p>
+        </div>
+
+        <div class="card">
+            <h3>Status</h3>
+            <p id="status"></p>
+        </div>
+
     </div>
 
-    <div style="background:#161b22; padding:20px; border-radius:10px; width:150px;">
-        <h3>Memory</h3>
-        <p id="memory" style="font-size:20px;"></p>
+    <!-- ALERT -->
+    <div style="margin-top:20px;">
+        <h2 id="alert" style="color:#ff4d4d;"></h2>
     </div>
 
-    <div style="background:#161b22; padding:20px; border-radius:10px; width:200px;">
-        <h3>Status</h3>
-        <p id="status" style="font-size:18px;"></p>
+    <!-- GRAPH -->
+    <div style="
+        margin-top:30px;
+        background:rgba(255,255,255,0.05);
+        padding:20px;
+        border-radius:15px;
+        backdrop-filter:blur(10px);
+    ">
+        <canvas id="chart"></canvas>
     </div>
 
 </div>
 
-<!-- ALERT -->
-<div style="text-align:center;">
-    <h2 id="alert" style="color:red;"></h2>
-</div>
+<style>
+.card {
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    padding:20px;
+    border-radius:15px;
+    backdrop-filter:blur(10px);
+    transition:0.3s;
+}
 
-<!-- GRAPH -->
-<div style="width:80%; margin:auto;">
-    <canvas id="chart"></canvas>
-</div>
+.card:hover {
+    transform:scale(1.05);
+}
+
+.card h3 {
+    margin:0;
+    color:#ccc;
+}
+
+.card p {
+    font-size:26px;
+    margin-top:10px;
+}
+</style>
 
 <script>
 const ctx = document.getElementById('chart').getContext('2d');
@@ -55,25 +114,28 @@ const chart = new Chart(ctx, {
         labels: labels,
         datasets: [
             {
-                label: 'CPU Usage',
+                label: 'CPU',
                 data: cpuData,
-                borderColor: 'cyan',
-                tension: 0.3
+                borderColor: '#00f2ff',
+                tension: 0.4
             },
             {
-                label: 'Memory Usage',
+                label: 'Memory',
                 data: memoryData,
-                borderColor: 'orange',
-                tension: 0.3
+                borderColor: '#ff9800',
+                tension: 0.4
             }
         ]
     },
     options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
+        plugins: {
+            legend: {
+                labels: { color: "white" }
             }
+        },
+        scales: {
+            x: { ticks: { color: "white" }},
+            y: { ticks: { color: "white" }, beginAtZero:true }
         }
     }
 });
@@ -84,24 +146,21 @@ async function fetchData() {
 
     const time = new Date().toLocaleTimeString();
 
-    // Update cards
     document.getElementById('cpu').innerText = data.cpu + "%";
     document.getElementById('memory').innerText = data.memory + "%";
     document.getElementById('status').innerText = data.status;
 
-    // Alert logic
     if (data.status.includes("Anomaly")) {
-        document.getElementById('alert').innerText = "🚨 SYSTEM ANOMALY DETECTED!";
+        document.getElementById('alert').innerText = "🚨 ANOMALY DETECTED!";
     } else {
         document.getElementById('alert').innerText = "";
     }
 
-    // Update graph
     labels.push(time);
     cpuData.push(data.cpu);
     memoryData.push(data.memory);
 
-    if (labels.length > 10) {
+    if (labels.length > 15) {
         labels.shift();
         cpuData.shift();
         memoryData.shift();
@@ -110,7 +169,6 @@ async function fetchData() {
     chart.update();
 }
 
-// Auto update
 setInterval(fetchData, 2000);
 </script>
 
