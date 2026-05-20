@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body style="background:#0d1117; color:white; font-family:Arial; margin:0;">
+
+<!-- HEADER -->
+<div style="padding:20px; text-align:center;">
+    <h1>🤖 AI Monitoring Dashboard</h1>
+</div>
+
+<!-- CARDS -->
+<div style="display:flex; justify-content:center; gap:20px; padding:20px;">
+
+    <div style="background:#161b22; padding:20px; border-radius:10px; width:150px;">
+        <h3>CPU</h3>
+        <p id="cpu" style="font-size:20px;"></p>
+    </div>
+
+    <div style="background:#161b22; padding:20px; border-radius:10px; width:150px;">
+        <h3>Memory</h3>
+        <p id="memory" style="font-size:20px;"></p>
+    </div>
+
+    <div style="background:#161b22; padding:20px; border-radius:10px; width:200px;">
+        <h3>Status</h3>
+        <p id="status" style="font-size:18px;"></p>
+    </div>
+
+</div>
+
+<!-- ALERT -->
+<div style="text-align:center;">
+    <h2 id="alert" style="color:red;"></h2>
+</div>
+
+<!-- GRAPH -->
+<div style="width:80%; margin:auto;">
+    <canvas id="chart"></canvas>
+</div>
+
+<script>
+const ctx = document.getElementById('chart').getContext('2d');
+
+let labels = [];
+let cpuData = [];
+let memoryData = [];
+
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'CPU Usage',
+                data: cpuData,
+                borderColor: 'cyan',
+                tension: 0.3
+            },
+            {
+                label: 'Memory Usage',
+                data: memoryData,
+                borderColor: 'orange',
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+async function fetchData() {
+    const res = await fetch('/data');
+    const data = await res.json();
+
+    const time = new Date().toLocaleTimeString();
+
+    // Update cards
+    document.getElementById('cpu').innerText = data.cpu + "%";
+    document.getElementById('memory').innerText = data.memory + "%";
+    document.getElementById('status').innerText = data.status;
+
+    // Alert logic
+    if (data.status.includes("Anomaly")) {
+        document.getElementById('alert').innerText = "🚨 SYSTEM ANOMALY DETECTED!";
+    } else {
+        document.getElementById('alert').innerText = "";
+    }
+
+    // Update graph
+    labels.push(time);
+    cpuData.push(data.cpu);
+    memoryData.push(data.memory);
+
+    if (labels.length > 10) {
+        labels.shift();
+        cpuData.shift();
+        memoryData.shift();
+    }
+
+    chart.update();
+}
+
+// Auto update
+setInterval(fetchData, 2000);
+</script>
+
+</body>
+</html>
