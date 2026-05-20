@@ -1,0 +1,7 @@
+flask
+prometheus_client
+psutil
+scikit-learn
+pandas
+joblib
+gunicorn

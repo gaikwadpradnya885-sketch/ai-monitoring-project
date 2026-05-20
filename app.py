@@ -1,17 +1,29 @@
 from flask import Flask, jsonify, render_template
 from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
 import psutil
-from model import predict
+import os
+import joblib
+import pandas as pd
 
 app = Flask(__name__)
 
+# Load ML model safely
+model = joblib.load("models/model.pkl")
+
+# Prometheus metrics
 cpu_metric = Gauge('cpu_usage', 'CPU Usage')
 memory_metric = Gauge('memory_usage', 'Memory Usage')
 anomaly_metric = Gauge('anomaly_status', 'Anomaly Status')
 
+# Prediction function (FIXED WARNING ISSUE)
+def predict(cpu, memory):
+    data = pd.DataFrame([[cpu, memory]], columns=["cpu", "memory"])
+    result = model.predict(data)
+    return "🚨 Anomaly" if result[0] == -1 else "Normal"
+
 @app.route('/')
 def home():
-    return "AI Monitoring Running"
+    return "AI Monitoring Running 🚀"
 
 @app.route('/metrics')
 def metrics():
@@ -42,5 +54,7 @@ def data():
 def dashboard():
     return render_template("dashboard.html")
 
+# 🔥 IMPORTANT FOR RENDER
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
